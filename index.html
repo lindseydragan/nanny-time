@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nanny Time">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f6f4ef">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-180.png">
+<title>Nanny Time</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #f6f4ef; }
+  @media (prefers-color-scheme: dark) { html, body { background: #141517; } }
+  iframe { position: fixed; top: env(safe-area-inset-top); left: 0; width: 100%; height: calc(100% - env(safe-area-inset-top)); border: 0; }
+</style>
+</head>
+<body>
+<iframe id="app" title="Nanny Time"></iframe>
+<script>
+  // STEP: paste your Apps Script web app URL (ends in /exec) between the quotes.
+  var APP_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
+
+  document.getElementById('app').src = APP_URL;
+
+  // Remembers the PIN for the app inside the frame, so she signs in only once on this phone.
+  // Only Google's Apps Script content frames are answered.
+  function trusted(origin) { return /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/.test(origin); }
+  window.addEventListener('message', function (ev) {
+    if (!trusted(ev.origin) || !ev.data || !ev.data.nt) return;
+    try {
+      if (ev.data.nt === 'getPin') ev.source.postMessage({ nt: 'pin', pin: localStorage.getItem('nt_pin') }, ev.origin);
+      if (ev.data.nt === 'savePin' && /^\d{4,8}$/.test(ev.data.pin)) localStorage.setItem('nt_pin', ev.data.pin);
+      if (ev.data.nt === 'forgetPin') localStorage.removeItem('nt_pin');
+    } catch (e) { /* storage unavailable: she'll just type the PIN */ }
+  });
+</script>
+</body>
+</html>
